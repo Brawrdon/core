@@ -2,9 +2,9 @@
 using System.Net;
 using System.Threading;
 
-namespace Brawrdon.Messenger
+namespace Server
 {
-    class Program
+    class Listener
     {
         private static HttpListener listener;
 

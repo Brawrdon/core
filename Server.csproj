@@ -1,9 +1,0 @@
-﻿<Project Sdk="Microsoft.NET.Sdk">
-  <PropertyGroup>
-    <OutputType>Exe</OutputType>
-    <TargetFramework>netcoreapp2.1</TargetFramework>
-    <LangVersion>7.2</LangVersion>
-    <VersionPrefix>0.1.0</VersionPrefix>
-    <RootNamespace>Brawrdon.Messenger</RootNamespace>
-  </PropertyGroup>
-</Project>
