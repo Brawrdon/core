@@ -1,19 +1,20 @@
 ﻿using System;
 using System.IO;
 using System.Net;
+using Dinosaur.Bots;
 
-namespace Server
+namespace Dinosaur.Server
 {
     internal static class Listener
     {
         private static HttpListener _listener;
-        private const string twitter = "http://localhost:9801/";
+        private const string Twitter = "http://localhost:9801/";
 
         private static void Main(string[] args)
         {
             _listener = new HttpListener();
             _listener.Prefixes.Add("http://localhost:15001/");
-            _listener.Prefixes.Add(twitter);
+            _listener.Prefixes.Add(Twitter);
 
             _listener.Start();
             Console.WriteLine("Listening... Press enter to stop");
@@ -29,7 +30,7 @@ namespace Server
 
             if (context.Request.LocalEndPoint.Port == 9801)
             {
-                Console.WriteLine("Tweet");
+                new Twitter();
             }
             
             using(var reader = new StreamReader(context.Request.InputStream))
@@ -38,6 +39,7 @@ namespace Server
 
             }
 
+            
         }
     }
 }
