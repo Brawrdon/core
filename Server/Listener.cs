@@ -1,7 +1,6 @@
 ﻿using System;
 using System.IO;
 using System.Net;
-using Dinosaur.Bots;
 
 namespace Dinosaur.Server
 {
@@ -28,18 +27,14 @@ namespace Dinosaur.Server
             var context = _listener.EndGetContext(ar);
             _listener.BeginGetContext(ListenerCallback, null);
 
-            if (context.Request.LocalEndPoint.Port == 9801)
+            // TODO: Send response back if statement not reached
+            if (context.Request.LocalEndPoint.Port == 9801 && context.Request.HttpMethod.ToUpper().Equals("POST"))
             {
-                new Twitter();
+                using (var reader = new StreamReader(context.Request.InputStream))
+                {
+                    Bots.Twitter.PostTweet(reader.ReadToEnd());
+                }
             }
-            
-            using(var reader = new StreamReader(context.Request.InputStream))
-            {
-                Console.WriteLine(reader.ReadToEnd());
-
-            }
-
-            
         }
     }
 }
