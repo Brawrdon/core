@@ -4,6 +4,8 @@ using System.Linq;
 using System.Net.Http;
 using System.Security.Cryptography;
 using System.Text;
+using System.Threading;
+using System.Threading.Tasks;
 
 namespace Dinosaur.Bots
 {
@@ -21,7 +23,7 @@ namespace Dinosaur.Bots
         /// The method deals with generating the things required for the Twitter OAuth which is a whole load of encoding.
         /// </summary>
         /// <param name="status">The status to be tweeted.</param>
-        public static async void PostTweet(string status)
+        public static async Task<string> PostTweet(string status)
         {
             var oauthNonce = GenerateNonce();
 
@@ -29,11 +31,11 @@ namespace Dinosaur.Bots
             var data = new SortedDictionary<string, string>
             {
                 {"status", status},
-                {"oauth_consumer_key", API.Twitter.CosumerKey},
+                {"oauth_consumer_key", API.Twitter.BrawrdonBot.CosumerKey},
                 {"oauth_nonce", oauthNonce},
                 {"oauth_signature_method", "HMAC-SHA1"},
                 {"oauth_timestamp", DateTimeOffset.UtcNow.ToUnixTimeSeconds().ToString()},
-                {"oauth_token", API.Twitter.OauthToken},
+                {"oauth_token", API.Twitter.BrawrdonBot.OauthToken},
                 {"oauth_version", "1.0"}
             };
 
@@ -52,10 +54,19 @@ namespace Dinosaur.Bots
             // Selects only the non-oauth key value pairs.
             var content = new FormUrlEncodedContent(data.Select(kvp => kvp).Where(kvp => !kvp.Key.StartsWith("oauth")));
 
-            // Request is sent! Woo!
+            
+            // Request is sent! Woo! (I added a small delay so that Twitter doesn't think two people are spamming)
+            Thread.Sleep(500);
             var response = await Client.PostAsync("https://api.twitter.com/1.1/statuses/update.json", content);
 
-            Console.WriteLine(response.ReasonPhrase);
+            return GenerateResponse(response.StatusCode.ToString());
+
+
+        }
+
+        private static string GenerateResponse(string response)
+        {
+            throw new NotImplementedException();
         }
 
 
@@ -85,8 +96,8 @@ namespace Dinosaur.Bots
         {
             var parameterString = GenerateParameterString(data);
             var basekey = GenerateBaseKey(parameterString);
-            var signingKey = Uri.EscapeDataString(API.Twitter.CosumerKeySecret) +
-                             "&" + Uri.EscapeDataString(API.Twitter.OauthTokenSecret);
+            var signingKey = Uri.EscapeDataString(API.Twitter.BrawrdonBot.CosumerKeySecret) +
+                             "&" + Uri.EscapeDataString(API.Twitter.BrawrdonBot.OauthTokenSecret);
 
 
             using (var hasher = new HMACSHA1(Encoding.ASCII.GetBytes(signingKey)))
