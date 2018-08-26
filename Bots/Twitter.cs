@@ -23,7 +23,8 @@ namespace Dinosaur.Bots
         /// The method deals with generating the things required for the Twitter OAuth which is a whole load of encoding.
         /// </summary>
         /// <param name="status">The status to be tweeted.</param>
-        public static async Task<string> PostTweet(string status)
+        public static async Task<string> PostTweet(string status, string consumerKey, string oauthToken,
+            string consumerKeySecret, string oauthTokenSecret)
         {
             var oauthNonce = GenerateNonce();
 
@@ -31,15 +32,15 @@ namespace Dinosaur.Bots
             var data = new SortedDictionary<string, string>
             {
                 {"status", status},
-                {"oauth_consumer_key", API.Twitter.BrawrdonBot.CosumerKey},
+                {"oauth_consumer_key", consumerKey},
                 {"oauth_nonce", oauthNonce},
                 {"oauth_signature_method", "HMAC-SHA1"},
                 {"oauth_timestamp", DateTimeOffset.UtcNow.ToUnixTimeSeconds().ToString()},
-                {"oauth_token", API.Twitter.BrawrdonBot.OauthToken},
+                {"oauth_token", oauthToken},
                 {"oauth_version", "1.0"}
             };
 
-            data.Add("oauth_signature", GenerateSignature(data));
+            data.Add("oauth_signature", GenerateSignature(data, consumerKeySecret, oauthTokenSecret));
 
 
             // Because the class is static and mutliple requests are being recieved asyncronously, we need to check
@@ -54,14 +55,12 @@ namespace Dinosaur.Bots
             // Selects only the non-oauth key value pairs.
             var content = new FormUrlEncodedContent(data.Select(kvp => kvp).Where(kvp => !kvp.Key.StartsWith("oauth")));
 
-            
+
             // Request is sent! Woo! (I added a small delay so that Twitter doesn't think two people are spamming)
             Thread.Sleep(500);
             var response = await Client.PostAsync("https://api.twitter.com/1.1/statuses/update.json", content);
 
             return GenerateResponse(response.StatusCode.ToString());
-
-
         }
 
         private static string GenerateResponse(string response)
@@ -92,12 +91,13 @@ namespace Dinosaur.Bots
         /// </summary>
         /// <param name="data">The sorted dictionary with the oauth and other data.</param>
         /// <returns>The generated signature.</returns>
-        private static string GenerateSignature(SortedDictionary<string, string> data)
+        private static string GenerateSignature(SortedDictionary<string, string> data, string consumerKeySecret,
+            string oauthTokenSecret)
         {
             var parameterString = GenerateParameterString(data);
             var basekey = GenerateBaseKey(parameterString);
-            var signingKey = Uri.EscapeDataString(API.Twitter.BrawrdonBot.CosumerKeySecret) +
-                             "&" + Uri.EscapeDataString(API.Twitter.BrawrdonBot.OauthTokenSecret);
+            var signingKey = Uri.EscapeDataString(consumerKeySecret) +
+                             "&" + Uri.EscapeDataString(oauthTokenSecret);
 
 
             using (var hasher = new HMACSHA1(Encoding.ASCII.GetBytes(signingKey)))

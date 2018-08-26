@@ -1,6 +1,7 @@
 ﻿using System;
 using System.IO;
 using System.Net;
+using Dinosaur.Bots;
 
 namespace Dinosaur.Server
 {
@@ -54,22 +55,23 @@ namespace Dinosaur.Server
         {
             // Removes /twitter from the url request to easily check what kind of request this is
             requestUrl = requestUrl.Remove(0, 9);
-            
+
             // Request to post a tweet
-            if (requestUrl.Equals("post/"))
-            {                        
+            if (requestUrl.Equals("post/BrawrdonBot"))
+            {
                 // TODO: Check if the Json contains the message parameter, ignore everything else
                 using (var reader = new StreamReader(request.InputStream))
                 {
-                    Bots.Twitter.PostTweet(reader.ReadToEnd());
-                }               
+                    Twitter.PostTweet(reader.ReadToEnd(), API.Twitter.BrawrdonBot.CosumerKey,
+                        API.Twitter.BrawrdonBot.OauthToken, API.Twitter.BrawrdonBot.CosumerKeySecret,
+                        API.Twitter.BrawrdonBot.OauthTokenSecret);
+                }
             }
         }
-        
+
         private static void GenerateResponse()
         {
             throw new NotImplementedException();
         }
-
     }
 }
