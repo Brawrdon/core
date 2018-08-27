@@ -1,17 +1,21 @@
 ﻿using System;
 using System.IO;
 using System.Net;
+using System.Net.Http;
 using Dinosaur.Bots;
+using Newtonsoft.Json.Linq;
 
 namespace Dinosaur.Server
 {
     internal static class Listener
     {
         private static HttpListener _listener;
+        private static HttpClient _client;
 
         private static void Main(string[] args)
         {
             // TODO: Add exceptions because this broke when I tried to ping
+            _client = new HttpClient();
             _listener = new HttpListener();
             _listener.Prefixes.Add("http://localhost:15001/");
 
@@ -56,15 +60,24 @@ namespace Dinosaur.Server
             // Removes /twitter from the url request to easily check what kind of request this is
             requestUrl = requestUrl.Remove(0, 9);
 
-            // Request to post a tweet
-            if (requestUrl.Equals("post/BrawrdonBot"))
+            // Request to post a tweet, could potentially have more bots
+            if (requestUrl.StartsWith("post/"))
             {
-                // TODO: Check if the Json contains the message parameter, ignore everything else
-                using (var reader = new StreamReader(request.InputStream))
+                requestUrl = requestUrl.Remove(0, 5);
+                if (requestUrl.Equals("brawrdonbot/"))
                 {
-                    Twitter.PostTweet(reader.ReadToEnd(), API.Twitter.BrawrdonBot.CosumerKey,
-                        API.Twitter.BrawrdonBot.OauthToken, API.Twitter.BrawrdonBot.CosumerKeySecret,
-                        API.Twitter.BrawrdonBot.OauthTokenSecret);
+                    // TODO: Check if the Json contains the message parameter, ignore everything else
+                    using (var reader = new StreamReader(request.InputStream))
+                    {
+                        var brawrdonBot = new TwitterBot(_client, API.Twitter.BrawrdonBot.CosumerKey,
+                            API.Twitter.BrawrdonBot.OauthToken, API.Twitter.BrawrdonBot.CosumerKeySecret,
+                            API.Twitter.BrawrdonBot.OauthTokenSecret);
+                        var requestBody = JObject.Parse(reader.ReadToEnd());
+                        if (requestBody["message"] != null)
+                        {
+                            brawrdonBot.PostTweet(requestBody["message"].ToString());
+                        }
+                    }
                 }
             }
         }
