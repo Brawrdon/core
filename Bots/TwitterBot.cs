@@ -7,63 +7,95 @@ using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 
+
 namespace Dinosaur.Bots
 {
-    public static class Twitter
+    public class TwitterBot
     {
-        private static readonly HttpClient Client = new HttpClient();
+        private readonly HttpClient _client;
         private const string Alpbabet = "abcdefghijklmnopqrstuvwxyz0123456789";
-        private const string Url = "https://api.twitter.com/1.1/statuses/update.json";
+        private readonly string _consumerKey;
+        private readonly string _oauthToken;
+        private readonly string _consumerKeySecret;
+        private readonly string _oauthTokenSecret;
+
+
+        public TwitterBot(HttpClient client, string consumerKey, string oauthToken, string consumerKeySecret,
+            string oauthTokenSecret)
+        {
+            _client = client;
+            _consumerKey = consumerKey;
+            _oauthToken = oauthToken;
+            _consumerKeySecret = consumerKeySecret;
+            _oauthTokenSecret = oauthTokenSecret;
+        }
+
 
         /// <summary>
-        /// This static method is the entry point. I felt made sense to be static because you just call the PostTweet method.
-        ///
         /// API keys are stored in a file within the same namespace called API.cs under the Twitter class as 'public const string KeyName'. I've done this for security reasons.
         ///
         /// The method deals with generating the things required for the Twitter OAuth which is a whole load of encoding.
         /// </summary>
         /// <param name="status">The status to be tweeted.</param>
-        public static async Task<string> PostTweet(string status, string consumerKey, string oauthToken,
-            string consumerKeySecret, string oauthTokenSecret)
+        public async Task<string> PostTweet(string status)
+        {
+            const string url = "https://api.twitter.com/1.1/statuses/update.json";
+            var requestData = new SortedDictionary<string, string>
+            {
+                {"status", status}
+            };
+
+            Authenticate(url, requestData);
+
+
+            var content = new FormUrlEncodedContent(requestData);
+
+
+            // Request is sent! Woo! (I added a small delay so that Twitter doesn't think two people are spamming)
+            Thread.Sleep(500);
+            var response = await _client.PostAsync(url, content);
+
+            return GenerateResponse(response.StatusCode.ToString());
+        }
+
+        /// <summary>
+        /// Deals with generating the Autherization headers.
+        /// </summary>
+        /// <param name="url">The api end point.</param>
+        /// <param name="requestData">The Json data sent in the body,</param>
+        private void Authenticate(string url, SortedDictionary<string, string> requestData)
         {
             var oauthNonce = GenerateNonce();
 
             // Sets up all the stuff Twitter needs to authneticate the request.
             var data = new SortedDictionary<string, string>
             {
-                {"status", status},
-                {"oauth_consumer_key", consumerKey},
+                {"oauth_consumer_key", _consumerKey},
                 {"oauth_nonce", oauthNonce},
                 {"oauth_signature_method", "HMAC-SHA1"},
                 {"oauth_timestamp", DateTimeOffset.UtcNow.ToUnixTimeSeconds().ToString()},
-                {"oauth_token", oauthToken},
+                {"oauth_token", _oauthToken},
                 {"oauth_version", "1.0"}
             };
 
-            data.Add("oauth_signature", GenerateSignature(data, consumerKeySecret, oauthTokenSecret));
-
-
-            // Because the class is static and mutliple requests are being recieved asyncronously, we need to check
-            // if the Authorization header is already set. If this isn't done it causes an "already set error", funnily enough.
-            if (Client.DefaultRequestHeaders.Contains("Authorization"))
+            foreach (var item in requestData)
             {
-                Client.DefaultRequestHeaders.Remove("Authorization");
+                data.Add(item.Key, item.Value);
             }
 
-            Client.DefaultRequestHeaders.Add("Authorization", GenerateOauth(data));
+            data.Add("oauth_signature", GenerateSignature(data, url, _consumerKeySecret, _oauthTokenSecret));
 
-            // Selects only the non-oauth key value pairs.
-            var content = new FormUrlEncodedContent(data.Select(kvp => kvp).Where(kvp => !kvp.Key.StartsWith("oauth")));
+            // Because only HTTPClient exists and mutliple requests are being sent asyncronously, we need to check
+            // if the Authorization header is already set. If this isn't done it causes an "already set error", funnily enough.
+            if (_client.DefaultRequestHeaders.Contains("Authorization"))
+            {
+                _client.DefaultRequestHeaders.Remove("Authorization");
+            }
 
-
-            // Request is sent! Woo! (I added a small delay so that Twitter doesn't think two people are spamming)
-            Thread.Sleep(500);
-            var response = await Client.PostAsync("https://api.twitter.com/1.1/statuses/update.json", content);
-
-            return GenerateResponse(response.StatusCode.ToString());
+            _client.DefaultRequestHeaders.Add("Authorization", GenerateOauth(data));
         }
 
-        private static string GenerateResponse(string response)
+        private string GenerateResponse(string response)
         {
             throw new NotImplementedException();
         }
@@ -73,7 +105,7 @@ namespace Dinosaur.Bots
         /// Twitter requires that each request has a randomly generated nonce. This just takes 32 random values from alphabet and uses that as the nonce.
         /// </summary>
         /// <returns>The randomly generated nonce.</returns>
-        private static string GenerateNonce()
+        private string GenerateNonce()
         {
             var oauthNonce = "";
             var random = new Random();
@@ -91,11 +123,11 @@ namespace Dinosaur.Bots
         /// </summary>
         /// <param name="data">The sorted dictionary with the oauth and other data.</param>
         /// <returns>The generated signature.</returns>
-        private static string GenerateSignature(SortedDictionary<string, string> data, string consumerKeySecret,
+        private string GenerateSignature(SortedDictionary<string, string> data, string url, string consumerKeySecret,
             string oauthTokenSecret)
         {
             var parameterString = GenerateParameterString(data);
-            var basekey = GenerateBaseKey(parameterString);
+            var basekey = GenerateBaseKey(parameterString, url);
             var signingKey = Uri.EscapeDataString(consumerKeySecret) +
                              "&" + Uri.EscapeDataString(oauthTokenSecret);
 
@@ -111,7 +143,7 @@ namespace Dinosaur.Bots
         /// </summary>
         /// <param name="data">The sorted dictionary with the oauth and other data.</param>
         /// <returns>The generated parameter string.</returns>
-        private static string GenerateParameterString(SortedDictionary<string, string> data)
+        private string GenerateParameterString(SortedDictionary<string, string> data)
         {
             return string.Join("&",
                 data.Select(kvp =>
@@ -123,10 +155,10 @@ namespace Dinosaur.Bots
         /// </summary>
         /// <param name="data">The sorted dictionary with the oauth and other data.</param>
         /// <returns>The generated base key.</returns>
-        private static string GenerateBaseKey(string parameterString)
+        private string GenerateBaseKey(string parameterString, string url)
         {
             return "POST&" +
-                   Uri.EscapeDataString(Url) +
+                   Uri.EscapeDataString(url) +
                    "&" +
                    Uri.EscapeDataString(parameterString);
         }
@@ -136,7 +168,7 @@ namespace Dinosaur.Bots
         /// </summary>
         /// <param name="data">The sorted dictionary with the oauth and other data.</param>
         /// <returns>The generated OAuth</returns>
-        private static string GenerateOauth(SortedDictionary<string, string> data)
+        private string GenerateOauth(SortedDictionary<string, string> data)
         {
             return "OAuth " + string.Join(", ",
                        data.Where(kvp => kvp.Key.StartsWith("oauth"))
