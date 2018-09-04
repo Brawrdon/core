@@ -18,7 +18,6 @@ namespace Dinosaur.Server
             _client = new HttpClient();
             _listener = new HttpListener();
             _listener.Prefixes.Add("http://localhost:15001/");
-
             _listener.Start();
             Console.WriteLine("Listening... Press enter to stop");
 
@@ -28,7 +27,8 @@ namespace Dinosaur.Server
 
         private static void ListenerCallback(IAsyncResult ar)
         {
-            var request = _listener.EndGetContext(ar).Request;
+            var context = _listener.EndGetContext(ar);
+            var request = context.Request;
             var requestUrl = request.RawUrl.ToLower();
 
             // Appends a backslash to the end of the request URL to make sure checks are done properly
@@ -47,16 +47,17 @@ namespace Dinosaur.Server
                 {
                     if (request.ContentType.Equals("application/json"))
                     {
-                        ProcessTwitterRequest(request, requestUrl);
+                        GenerateResponse(context.Response, ProcessTwitterRequest(request, requestUrl));
                     }
                 }
             }
 
-            GenerateResponse();
+            
         }
 
-        private static void ProcessTwitterRequest(HttpListenerRequest request, string requestUrl)
+        private static int ProcessTwitterRequest(HttpListenerRequest request, string requestUrl)
         {
+            var responseCode = 0;
             // Removes /twitter from the url request to easily check what kind of request this is
             requestUrl = requestUrl.Remove(0, 9);
 
@@ -69,22 +70,31 @@ namespace Dinosaur.Server
                     // TODO: Check if the Json contains the message parameter, ignore everything else
                     using (var reader = new StreamReader(request.InputStream))
                     {
-                        var brawrdonBot = new TwitterBot(_client, API.Twitter.BrawrdonBot.CosumerKey,
-                            API.Twitter.BrawrdonBot.OauthToken, API.Twitter.BrawrdonBot.CosumerKeySecret,
-                            API.Twitter.BrawrdonBot.OauthTokenSecret);
+                        var brawrdonBot = new TwitterBot(_client, API.Twitter.BrawrdonBot.CosumerKey, API.Twitter.BrawrdonBot.OauthToken, API.Twitter.BrawrdonBot.CosumerKeySecret, API.Twitter.BrawrdonBot.OauthTokenSecret);
+
                         var requestBody = JObject.Parse(reader.ReadToEnd());
-                        if (requestBody["message"] != null)
-                        {
-                            brawrdonBot.PostTweet(requestBody["message"].ToString());
-                        }
+                        
+                        responseCode = requestBody["message"] != null ? brawrdonBot.PostTweet(requestBody["message"].ToString()).Result : 400;
                     }
                 }
             }
+
+            // TODO: Maybe add more specific responses?
+            if (responseCode == 0)
+            {
+                responseCode = 400;
+            }
+
+            return responseCode;
         }
 
-        private static void GenerateResponse()
+        private static void GenerateResponse(HttpListenerResponse response, int responseCode)
         {
-            throw new NotImplementedException();
+            response.StatusCode = responseCode;
+//            response.StatusDescription = "Something";
+            
+            response.Close();
+
         }
     }
 }

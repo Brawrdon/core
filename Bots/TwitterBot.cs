@@ -37,7 +37,7 @@ namespace Dinosaur.Bots
         /// The method deals with generating the things required for the Twitter OAuth which is a whole load of encoding.
         /// </summary>
         /// <param name="status">The status to be tweeted.</param>
-        public async Task<string> PostTweet(string status)
+        public async Task<int> PostTweet(string status)
         {
             const string url = "https://api.twitter.com/1.1/statuses/update.json";
             var requestData = new SortedDictionary<string, string>
@@ -55,7 +55,7 @@ namespace Dinosaur.Bots
             Thread.Sleep(500);
             var response = await _client.PostAsync(url, content);
 
-            return GenerateResponse(response.StatusCode.ToString());
+            return (int) response.StatusCode;
         }
 
         /// <summary>
@@ -93,11 +93,6 @@ namespace Dinosaur.Bots
             }
 
             _client.DefaultRequestHeaders.Add("Authorization", GenerateOauth(data));
-        }
-
-        private string GenerateResponse(string response)
-        {
-            throw new NotImplementedException();
         }
 
 
