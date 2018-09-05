@@ -4,4 +4,7 @@
     <RootNamespace>Dinosaur.Bots</RootNamespace>
     <VersionPrefix>1.0.0</VersionPrefix>
   </PropertyGroup>
+  <ItemGroup>
+    <PackageReference Include="Newtonsoft.Json" Version="11.0.2" />
+  </ItemGroup>
 </Project>

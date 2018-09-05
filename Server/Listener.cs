@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Net;
 using System.Net.Http;
@@ -17,7 +18,7 @@ namespace Dinosaur.Server
             // TODO: Add exceptions because this broke when I tried to ping
             _client = new HttpClient();
             _listener = new HttpListener();
-            _listener.Prefixes.Add("http://localhost:15001/");
+            _listener.Prefixes.Add("http://localhost:15101/");
             _listener.Start();
             Console.WriteLine("Listening... Press enter to stop");
 
@@ -27,9 +28,14 @@ namespace Dinosaur.Server
 
         private static void ListenerCallback(IAsyncResult ar)
         {
+
             var context = _listener.EndGetContext(ar);
             var request = context.Request;
             var requestUrl = request.RawUrl.ToLower();
+            var response = context.Response;
+            JObject responseMessage = new JObject(
+                           new JProperty("status", 400),
+                           new JProperty("reason", "Invalid request"));
 
             // Appends a backslash to the end of the request URL to make sure checks are done properly
             if (!requestUrl.EndsWith("/"))
@@ -47,17 +53,27 @@ namespace Dinosaur.Server
                 {
                     if (request.ContentType.Equals("application/json"))
                     {
-                        GenerateResponse(context.Response, ProcessTwitterRequest(request, requestUrl));
+                        responseMessage = ProcessTwitterRequest(request, requestUrl);
                     }
                 }
             }
+            else
+            {
+                responseMessage["status"] = 405;
+                responseMessage["reason"] = "Method not allowed";
+            }
 
-            
+            response.StatusCode = (int)responseMessage["status"];
+            response.StatusDescription = (string)responseMessage["reason"];
+            response.Close();
         }
 
-        private static int ProcessTwitterRequest(HttpListenerRequest request, string requestUrl)
+        private static JObject ProcessTwitterRequest(HttpListenerRequest request, string requestUrl)
         {
-            var responseCode = 0;
+            JObject responseMessage = new JObject(
+                 new JProperty("status", 400),
+                 new JProperty("reason", "Invalid request"));
+
             // Removes /twitter from the url request to easily check what kind of request this is
             requestUrl = requestUrl.Remove(0, 9);
 
@@ -67,34 +83,24 @@ namespace Dinosaur.Server
                 requestUrl = requestUrl.Remove(0, 5);
                 if (requestUrl.Equals("brawrdonbot/"))
                 {
-                    // TODO: Check if the Json contains the message parameter, ignore everything else
                     using (var reader = new StreamReader(request.InputStream))
                     {
                         var brawrdonBot = new TwitterBot(_client, API.Twitter.BrawrdonBot.CosumerKey, API.Twitter.BrawrdonBot.OauthToken, API.Twitter.BrawrdonBot.CosumerKeySecret, API.Twitter.BrawrdonBot.OauthTokenSecret);
 
                         var requestBody = JObject.Parse(reader.ReadToEnd());
-                        
-                        responseCode = requestBody["message"] != null ? brawrdonBot.PostTweet(requestBody["message"].ToString()).Result : 400;
+
+                        if (requestBody["message"] != null)
+                        {
+                            responseMessage = brawrdonBot.PostTweet(requestBody["message"].ToString()).Result;
+                        }
+                        else
+                        {
+                            responseMessage["reason"] = "Invalid JSON";
+                        }
                     }
                 }
             }
-
-            // TODO: Maybe add more specific responses?
-            if (responseCode == 0)
-            {
-                responseCode = 400;
-            }
-
-            return responseCode;
-        }
-
-        private static void GenerateResponse(HttpListenerResponse response, int responseCode)
-        {
-            response.StatusCode = responseCode;
-//            response.StatusDescription = "Something";
-            
-            response.Close();
-
+            return responseMessage;
         }
     }
 }

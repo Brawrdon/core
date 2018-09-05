@@ -6,6 +6,7 @@ using System.Security.Cryptography;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
+using Newtonsoft.Json.Linq;
 
 
 namespace Dinosaur.Bots
@@ -13,7 +14,7 @@ namespace Dinosaur.Bots
     public class TwitterBot
     {
         private readonly HttpClient _client;
-        private const string Alpbabet = "abcdefghijklmnopqrstuvwxyz0123456789";
+        private const string Alphabet = "abcdefghijklmnopqrstuvwxyz0123456789";
         private readonly string _consumerKey;
         private readonly string _oauthToken;
         private readonly string _consumerKeySecret;
@@ -37,7 +38,7 @@ namespace Dinosaur.Bots
         /// The method deals with generating the things required for the Twitter OAuth which is a whole load of encoding.
         /// </summary>
         /// <param name="status">The status to be tweeted.</param>
-        public async Task<int> PostTweet(string status)
+        public async Task<JObject> PostTweet(string status)
         {
             const string url = "https://api.twitter.com/1.1/statuses/update.json";
             var requestData = new SortedDictionary<string, string>
@@ -55,11 +56,13 @@ namespace Dinosaur.Bots
             Thread.Sleep(500);
             var response = await _client.PostAsync(url, content);
 
-            return (int) response.StatusCode;
+            return new JObject(
+                new JProperty("status", response.StatusCode),
+                new JProperty("reason", response.ReasonPhrase));
         }
 
         /// <summary>
-        /// Deals with generating the Autherization headers.
+        /// Deals with generating the Authorization headers.
         /// </summary>
         /// <param name="url">The api end point.</param>
         /// <param name="requestData">The Json data sent in the body,</param>
@@ -67,7 +70,7 @@ namespace Dinosaur.Bots
         {
             var oauthNonce = GenerateNonce();
 
-            // Sets up all the stuff Twitter needs to authneticate the request.
+            // Sets up all the stuff Twitter needs to authenticate the request.
             var data = new SortedDictionary<string, string>
             {
                 {"oauth_consumer_key", _consumerKey},
@@ -85,7 +88,7 @@ namespace Dinosaur.Bots
 
             data.Add("oauth_signature", GenerateSignature(data, url, _consumerKeySecret, _oauthTokenSecret));
 
-            // Because only HTTPClient exists and mutliple requests are being sent asyncronously, we need to check
+            // Because only HTTPClient exists and multiple requests are being sent asynchronously, we need to check
             // if the Authorization header is already set. If this isn't done it causes an "already set error", funnily enough.
             if (_client.DefaultRequestHeaders.Contains("Authorization"))
             {
@@ -107,7 +110,7 @@ namespace Dinosaur.Bots
 
             for (var i = 0; i < 32; i++)
             {
-                oauthNonce += Alpbabet[random.Next(0, Alpbabet.Length)];
+                oauthNonce += Alphabet[random.Next(0, Alphabet.Length)];
             }
 
             return oauthNonce;
@@ -159,7 +162,7 @@ namespace Dinosaur.Bots
         }
 
         /// <summary>
-        /// Takes all the data starting with oauth and creates an OAuth Autherization header.
+        /// Takes all the data starting with oauth and creates an OAuth Authorization header.
         /// </summary>
         /// <param name="data">The sorted dictionary with the oauth and other data.</param>
         /// <returns>The generated OAuth</returns>
