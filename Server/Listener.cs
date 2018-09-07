@@ -8,10 +8,12 @@ using Newtonsoft.Json.Linq;
 
 namespace Dinosaur.Server
 {
-    internal static class Listener
+    internal class Listener
     {
         private static HttpListener _listener;
         private static HttpClient _client;
+
+        private static TwitterBot _brawrdonBot;
 
         private static void Main(string[] args)
         {
@@ -19,12 +21,30 @@ namespace Dinosaur.Server
             _client = new HttpClient();
             _listener = new HttpListener();
             _listener.Prefixes.Add("http://localhost:15101/");
+
+            // Build bots
+            BuildTwitterBots();
+
+            // Start listener
             _listener.Start();
             Console.WriteLine("Listening... Press enter to stop");
-
             _listener.BeginGetContext(ListenerCallback, null);
             Console.ReadLine();
+
+            // Destroy bots
+            DestroyTwitterBots();
         }
+
+        private static void BuildTwitterBots()
+        {
+            _brawrdonBot = new TwitterBot(_client, API.Twitter.BrawrdonBot.ConsumerKey, API.Twitter.BrawrdonBot.OauthToken, API.Twitter.BrawrdonBot.ConsumerKeySecret, API.Twitter.BrawrdonBot.OauthTokenSecret);
+        }
+
+        private static void DestroyTwitterBots()
+        {
+            var brawrdonBotOnline = _brawrdonBot.SetOnlineStatus(false).Result;
+        }
+
 
         private static void ListenerCallback(IAsyncResult ar)
         {
@@ -85,13 +105,13 @@ namespace Dinosaur.Server
                 {
                     using (var reader = new StreamReader(request.InputStream))
                     {
-                        var brawrdonBot = new TwitterBot(_client, API.Twitter.BrawrdonBot.CosumerKey, API.Twitter.BrawrdonBot.OauthToken, API.Twitter.BrawrdonBot.CosumerKeySecret, API.Twitter.BrawrdonBot.OauthTokenSecret);
+
 
                         var requestBody = JObject.Parse(reader.ReadToEnd());
 
                         if (requestBody["message"] != null)
                         {
-                            responseMessage = brawrdonBot.PostTweet(requestBody["message"].ToString()).Result;
+                            responseMessage = _brawrdonBot.PostTweet(requestBody["message"].ToString()).Result;
                         }
                         else
                         {

@@ -6,11 +6,10 @@
         {
             public static class BrawrdonBot
             {
-                public const string CosumerKey = "";
-                public const string CosumerKeySecret = "";
+                public const string ConsumerKey = "";
+                public const string ConsumerKeySecret = "";
                 public const string OauthToken = "";
                 public const string OauthTokenSecret = "";
-                
             }
         }
     }

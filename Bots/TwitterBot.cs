@@ -29,6 +29,7 @@ namespace Dinosaur.Bots
             _oauthToken = oauthToken;
             _consumerKeySecret = consumerKeySecret;
             _oauthTokenSecret = oauthTokenSecret;
+            var online = SetOnlineStatus(true).Result;
         }
 
 
@@ -47,10 +48,7 @@ namespace Dinosaur.Bots
             };
 
             Authenticate(url, requestData);
-
-
             var content = new FormUrlEncodedContent(requestData);
-
 
             // Request is sent! Woo! (I added a small delay so that Twitter doesn't think two people are spamming)
             Thread.Sleep(500);
@@ -59,6 +57,27 @@ namespace Dinosaur.Bots
             return new JObject(
                 new JProperty("status", response.StatusCode),
                 new JProperty("reason", response.ReasonPhrase));
+        }
+
+        public async Task<bool> SetOnlineStatus(bool status)
+        {
+            const string url = "https://api.twitter.com/1.1/account/update_profile.json";
+
+            var concat = status ? "Currently online." : "Currently offline.";
+            var description = "A .NET Core powered robot that tweets messages sent from http://Brawrdon.com. Part of the Dinosaur server. Made by @Brawrdon. " + concat;
+
+            var requestData = new SortedDictionary<string, string>
+            {
+                {"description", description}
+            };
+
+            Authenticate(url, requestData);
+            var content = new FormUrlEncodedContent(requestData);
+
+            // Request is sent! Woo! (I added a small delay so that Twitter doesn't think two people are spamming)
+            Thread.Sleep(500);
+            var response = await _client.PostAsync(url, content);
+            return (int)response.StatusCode == 200;
         }
 
         /// <summary>
