@@ -28,7 +28,7 @@ namespace BrawrdonBot
             _oauthToken = oauthToken;
             _consumerKeySecret = consumerKeySecret;
             _oauthTokenSecret = oauthTokenSecret;
-            var online = SetOnlineStatus(true).Result;
+            SetOnlineStatus(true);
         }
 
 
@@ -57,7 +57,7 @@ namespace BrawrdonBot
         /// </summary>
         /// <param name="status">Whether the status should be online (true) or offline (false).</param>
         /// <returns>The result of attempting to change the status.</returns>
-        public async Task<bool> SetOnlineStatus(bool status)
+        public async void SetOnlineStatus(bool status)
         {
             const string url = "https://api.twitter.com/1.1/account/update_profile.json";
 
@@ -69,10 +69,10 @@ namespace BrawrdonBot
             Authenticate(url, requestData);
             var content = new FormUrlEncodedContent(requestData);
 
-            // Request is sent! Woo! (I added a small delay so that Twitter doesn't think two people are spamming)
             Thread.Sleep(500);
             var response = await _client.PostAsync(url, content);
-            return (int) response.StatusCode == 200;
+            
+            Console.WriteLine(string.Format("Attempt to change status to '{0}' : {1}", concat, response.ReasonPhrase));
         }
 
         /// <summary>

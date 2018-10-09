@@ -21,26 +21,28 @@ namespace BrawrdonBot.Server
             _listener.Prefixes.Add("http://localhost:15101/");
 
             // Build bots
-            Build();
-
+            _brawrdonBot = new BrawrdonBot(_client, Api.ConsumerKey, Api.OauthToken, Api.ConsumerKeySecret, Api.OauthTokenSecret);
+            
             // Start listener
             _listener.Start();
+            _listener.BeginGetContext(ListenerCallback, null);      
             Console.WriteLine("Listening... Press enter to stop");
-            _listener.BeginGetContext(ListenerCallback, null);
+            Console.ReadLine();
+            
+            // Destroy bots
+            _brawrdonBot.SetOnlineStatus(false);
+            Console.WriteLine("Press any key to quit.");
             Console.ReadLine();
 
-            // Destroy bots
-            Destroy();
         }
 
         private static void Build()
         {
-            _brawrdonBot = new BrawrdonBot(_client, Api.ConsumerKey, Api.OauthToken, Api.ConsumerKeySecret, Api.OauthTokenSecret);
+           
         }
 
         private static void Destroy()
         {
-            var brawrdonBotOnline = _brawrdonBot.SetOnlineStatus(false).Result;
         }
 
 
