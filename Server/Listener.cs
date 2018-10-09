@@ -44,6 +44,10 @@ namespace BrawrdonBot.Server
         }
 
 
+        /// <summary>
+        /// The requests collected by the HTTP listener start here.
+        /// </summary>
+        /// <param name="ar"></param>
         private static void ListenerCallback(IAsyncResult ar)
         {
             var context = _listener.EndGetContext(ar);
@@ -76,6 +80,14 @@ namespace BrawrdonBot.Server
             response.Close();
         }
 
+        /// <summary>
+        /// The request is processed here. First the URL is parsed to ensure it matches the format twitter/post/brawrdonbot/.
+        /// If this is true, the JSON is checked to see if it contains a message element. The data is then passed to
+        /// BrawrdonBot where it is used to post a tweet. A response is sent back stating whether or not the tweet has been posted.
+        /// </summary>
+        /// <param name="request">The HTTP request object.</param>
+        /// <param name="requestUrl">The URL that was requested.</param>
+        /// <returns></returns>
         private static JObject ProcessRequest(HttpListenerRequest request, string requestUrl)
         {
             var responseMessage = new JObject(new JProperty("status", 400), new JProperty("reason", "Invalid request"));

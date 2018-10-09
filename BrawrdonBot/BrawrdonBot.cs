@@ -33,11 +33,10 @@ namespace BrawrdonBot
 
 
         /// <summary>
-        /// API keys are stored in a file within the same namespace called API.cs under the Twitter class as 'public const string KeyName'. I've done this for security reasons.
-        ///
-        /// The method deals with generating the things required for the Twitter OAuth which is a whole load of encoding.
+        /// Posts a tweet.
         /// </summary>
         /// <param name="status">The status to be tweeted.</param>
+        /// <returns>T response code and message.</returns>
         public async Task<JObject> PostTweet(string status)
         {
             const string url = "https://api.twitter.com/1.1/statuses/update.json";
@@ -53,6 +52,11 @@ namespace BrawrdonBot
             return new JObject(new JProperty("status", response.StatusCode), new JProperty("reason", response.ReasonPhrase));
         }
 
+        /// <summary>
+        /// Updates the description to show whether or not BrawrdonBot can receive requests. Only updates on a graceful shutdown.
+        /// </summary>
+        /// <param name="status">Whether the status should be online (true) or offline (false).</param>
+        /// <returns>The result of attempting to change the status.</returns>
         public async Task<bool> SetOnlineStatus(bool status)
         {
             const string url = "https://api.twitter.com/1.1/account/update_profile.json";
@@ -72,7 +76,7 @@ namespace BrawrdonBot
         }
 
         /// <summary>
-        /// Deals with generating the Authorization headers.
+        /// Generates the Authorization headers.
         /// </summary>
         /// <param name="url">The api end point.</param>
         /// <param name="requestData">The Json data sent in the body,</param>
@@ -127,12 +131,13 @@ namespace BrawrdonBot
         }
 
         /// <summary>
-        /// Deals with generating the signature. It first creates the "parameter string", then uses that to create the "base key" and then generates the signing key. The signing key is used with the base key to perform a HMACSHA1 has, that is then base64 encoded.
+        /// Generates the signature. It first creates the "parameter string", then uses that to create the "base key" and then generates the signing key.
+        /// The signing key is used with the base key to perform a HMACSHA1 has, that is then base64 encoded.
         /// </summary>
         /// <param name="data">The sorted dictionary with the oauth and other data.</param>
-        /// <param name="url"></param>
-        /// <param name="consumerKeySecret"></param>
-        /// <param name="oauthTokenSecret"></param>
+        /// <param name="url">API endpoint.</param>
+        /// <param name="consumerKeySecret">Consumer key secret</param>
+        /// <param name="oauthTokenSecret">Oauth token secret</param>
         /// <returns>The generated signature.</returns>
         private static string GenerateSignature(SortedDictionary<string, string> data, string url, string consumerKeySecret, string oauthTokenSecret)
         {
@@ -148,7 +153,8 @@ namespace BrawrdonBot
         }
 
         /// <summary>
-        /// Generates the parameter string by taking all the oauth and other values and joining them into Twitter's format. It percent encodes all the key values.
+        /// Generates the parameter string by taking all the oauth and other values and joining them into Twitter's format.
+        /// It percent encodes all the key values.
         /// </summary>
         /// <param name="data">The sorted dictionary with the oauth and other data.</param>
         /// <returns>The generated parameter string.</returns>
@@ -160,8 +166,8 @@ namespace BrawrdonBot
         /// <summary>
         /// Generates the base key by encoding joining the request type, the url and the parameter string. It percent encodes all the values.
         /// </summary>
-        /// <param name="parameterString"></param>
-        /// <param name="url"></param>
+        /// <param name="parameterString">The generated parameter string</param>
+        /// <param name="url">API endpoint</param>
         /// <returns>The generated base key.</returns>
         private static string GenerateBaseKey(string parameterString, string url)
         {
