@@ -21,7 +21,7 @@ namespace BrawrdonBot.Server
             _listener.Prefixes.Add("http://localhost:15101/");
 
             // Build bots
-            BuildTwitterBots();
+            Build();
 
             // Start listener
             _listener.Start();
@@ -30,15 +30,15 @@ namespace BrawrdonBot.Server
             Console.ReadLine();
 
             // Destroy bots
-            DestroyTwitterBots();
+            Destroy();
         }
 
-        private static void BuildTwitterBots()
+        private static void Build()
         {
             _brawrdonBot = new BrawrdonBot(_client, Api.ConsumerKey, Api.OauthToken, Api.ConsumerKeySecret, Api.OauthTokenSecret);
         }
 
-        private static void DestroyTwitterBots()
+        private static void Destroy()
         {
             var brawrdonBotOnline = _brawrdonBot.SetOnlineStatus(false).Result;
         }
@@ -50,27 +50,20 @@ namespace BrawrdonBot.Server
             var request = context.Request;
             var requestUrl = request.RawUrl.ToLower();
             var response = context.Response;
-            JObject responseMessage = new JObject(new JProperty("status", 400), new JProperty("reason", "Invalid request"));
+            var responseMessage = new JObject(new JProperty("status", 400), new JProperty("reason", "Invalid request"));
 
-            // Appends a backslash to the end of the request URL to make sure checks are done properly
+            // Appends the URL with a backslash to ensure parsing is done correctly
             if (!requestUrl.EndsWith("/"))
-            {
                 requestUrl += "/";
-            }
 
+            // Start listening for other requests
             _listener.BeginGetContext(ListenerCallback, null);
 
-            // TODO: Send response back if statement not reached
-            if (request.HttpMethod.ToUpper().Equals("POST"))
+            // Process the request
+            if (request.HttpMethod.ToUpper().Equals("POST") && requestUrl.StartsWith("/twitter"))
             {
-                // Parse Twitter requests
-                if (requestUrl.StartsWith("/twitter"))
-                {
-                    if (request.ContentType.Equals("application/json"))
-                    {
-                        responseMessage = ProcessTwitterRequest(request, requestUrl);
-                    }
-                }
+                if (request.ContentType != null && request.ContentType.Equals("application/json"))
+                    responseMessage = ProcessRequest(request, requestUrl);
             }
             else
             {
@@ -83,33 +76,30 @@ namespace BrawrdonBot.Server
             response.Close();
         }
 
-        private static JObject ProcessTwitterRequest(HttpListenerRequest request, string requestUrl)
+        private static JObject ProcessRequest(HttpListenerRequest request, string requestUrl)
         {
-            JObject responseMessage = new JObject(new JProperty("status", 400), new JProperty("reason", "Invalid request"));
+            var responseMessage = new JObject(new JProperty("status", 400), new JProperty("reason", "Invalid request"));
 
             // Removes /twitter from the url request to easily check what kind of request this is
             requestUrl = requestUrl.Remove(0, 9);
 
-            // Request to post a tweet, could potentially have more bots
-            if (requestUrl.StartsWith("post/"))
-            {
-                requestUrl = requestUrl.Remove(0, 5);
-                if (requestUrl.Equals("brawrdonbot/"))
-                {
-                    using (var reader = new StreamReader(request.InputStream))
-                    {
-                        var requestBody = JObject.Parse(reader.ReadToEnd());
+            // Check that the request is for twitter/post/brawrdonbot/
+            if (!requestUrl.StartsWith("post/"))
+                return responseMessage;
 
-                        if (requestBody["message"] != null)
-                        {
-                            responseMessage = _brawrdonBot.PostTweet(requestBody["message"].ToString()).Result;
-                        }
-                        else
-                        {
-                            responseMessage["reason"] = "Invalid JSON";
-                        }
-                    }
-                }
+            requestUrl = requestUrl.Remove(0, 5);
+
+            if (!requestUrl.Equals("brawrdonbot/"))
+                return responseMessage;
+
+            using (var reader = new StreamReader(request.InputStream))
+            {
+                var requestBody = JObject.Parse(reader.ReadToEnd());
+
+                if (requestBody["message"] != null)
+                    responseMessage = _brawrdonBot.PostTweet(requestBody["message"].ToString()).Result;
+                else
+                    responseMessage["reason"] = "Invalid JSON";
             }
 
             return responseMessage;

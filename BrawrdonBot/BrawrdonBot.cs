@@ -113,7 +113,7 @@ namespace BrawrdonBot
         /// Twitter requires that each request has a randomly generated nonce. This just takes 32 random values from alphabet and uses that as the nonce.
         /// </summary>
         /// <returns>The randomly generated nonce.</returns>
-        private string GenerateNonce()
+        private static string GenerateNonce()
         {
             var oauthNonce = "";
             var random = new Random();
