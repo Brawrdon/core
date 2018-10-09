@@ -1,8 +1,9 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
     <TargetFramework>netcoreapp2.1</TargetFramework>
-    <RootNamespace>Dinosaur.Bots</RootNamespace>
+    <RootNamespace>BrawrdonBot</RootNamespace>
     <VersionPrefix>1.0.0</VersionPrefix>
+    <AssemblyName>BrawrdonBot</AssemblyName>
   </PropertyGroup>
   <ItemGroup>
     <PackageReference Include="Newtonsoft.Json" Version="11.0.2" />
