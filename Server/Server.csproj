@@ -2,13 +2,13 @@
   <PropertyGroup>
     <OutputType>Exe</OutputType>
     <TargetFramework>netcoreapp2.1</TargetFramework>
-    <RootNamespace>Dinosaur.Server</RootNamespace>
+    <RootNamespace>BrawrdonBot.Server</RootNamespace>
     <VersionPrefix>1.0.0</VersionPrefix>
   </PropertyGroup>
   <ItemGroup>
-    <ProjectReference Include="..\Bots\Bots.csproj" />
+    <PackageReference Include="Newtonsoft.Json" Version="11.0.2" />
   </ItemGroup>
   <ItemGroup>
-    <PackageReference Include="Newtonsoft.Json" Version="11.0.2" />
+    <ProjectReference Include="..\BrawrdonBot\BrawrdonBot.csproj" />
   </ItemGroup>
 </Project>

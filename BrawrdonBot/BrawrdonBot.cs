@@ -9,9 +9,9 @@ using System.Threading.Tasks;
 using Newtonsoft.Json.Linq;
 
 
-namespace Dinosaur.Bots
+namespace BrawrdonBot
 {
-    public class TwitterBot
+    public class BrawrdonBot
     {
         private readonly HttpClient _client;
         private const string Alphabet = "abcdefghijklmnopqrstuvwxyz0123456789";
@@ -21,8 +21,7 @@ namespace Dinosaur.Bots
         private readonly string _oauthTokenSecret;
 
 
-        public TwitterBot(HttpClient client, string consumerKey, string oauthToken, string consumerKeySecret,
-            string oauthTokenSecret)
+        public BrawrdonBot(HttpClient client, string consumerKey, string oauthToken, string consumerKeySecret, string oauthTokenSecret)
         {
             _client = client;
             _consumerKey = consumerKey;
@@ -42,10 +41,7 @@ namespace Dinosaur.Bots
         public async Task<JObject> PostTweet(string status)
         {
             const string url = "https://api.twitter.com/1.1/statuses/update.json";
-            var requestData = new SortedDictionary<string, string>
-            {
-                {"status", status}
-            };
+            var requestData = new SortedDictionary<string, string> {{"status", status}};
 
             Authenticate(url, requestData);
             var content = new FormUrlEncodedContent(requestData);
@@ -54,9 +50,7 @@ namespace Dinosaur.Bots
             Thread.Sleep(500);
             var response = await _client.PostAsync(url, content);
 
-            return new JObject(
-                new JProperty("status", response.StatusCode),
-                new JProperty("reason", response.ReasonPhrase));
+            return new JObject(new JProperty("status", response.StatusCode), new JProperty("reason", response.ReasonPhrase));
         }
 
         public async Task<bool> SetOnlineStatus(bool status)
@@ -66,10 +60,7 @@ namespace Dinosaur.Bots
             var concat = status ? "Currently online." : "Currently offline.";
             var description = "A .NET Core powered robot that tweets messages sent from http://Brawrdon.com. Part of the Dinosaur server. Made by @Brawrdon. " + concat;
 
-            var requestData = new SortedDictionary<string, string>
-            {
-                {"description", description}
-            };
+            var requestData = new SortedDictionary<string, string> {{"description", description}};
 
             Authenticate(url, requestData);
             var content = new FormUrlEncodedContent(requestData);
@@ -77,7 +68,7 @@ namespace Dinosaur.Bots
             // Request is sent! Woo! (I added a small delay so that Twitter doesn't think two people are spamming)
             Thread.Sleep(500);
             var response = await _client.PostAsync(url, content);
-            return (int)response.StatusCode == 200;
+            return (int) response.StatusCode == 200;
         }
 
         /// <summary>
@@ -139,19 +130,20 @@ namespace Dinosaur.Bots
         /// Deals with generating the signature. It first creates the "parameter string", then uses that to create the "base key" and then generates the signing key. The signing key is used with the base key to perform a HMACSHA1 has, that is then base64 encoded.
         /// </summary>
         /// <param name="data">The sorted dictionary with the oauth and other data.</param>
+        /// <param name="url"></param>
+        /// <param name="consumerKeySecret"></param>
+        /// <param name="oauthTokenSecret"></param>
         /// <returns>The generated signature.</returns>
-        private string GenerateSignature(SortedDictionary<string, string> data, string url, string consumerKeySecret,
-            string oauthTokenSecret)
+        private static string GenerateSignature(SortedDictionary<string, string> data, string url, string consumerKeySecret, string oauthTokenSecret)
         {
             var parameterString = GenerateParameterString(data);
-            var basekey = GenerateBaseKey(parameterString, url);
-            var signingKey = Uri.EscapeDataString(consumerKeySecret) +
-                             "&" + Uri.EscapeDataString(oauthTokenSecret);
+            var baseKey = GenerateBaseKey(parameterString, url);
+            var signingKey = Uri.EscapeDataString(consumerKeySecret) + "&" + Uri.EscapeDataString(oauthTokenSecret);
 
 
             using (var hasher = new HMACSHA1(Encoding.ASCII.GetBytes(signingKey)))
             {
-                return Convert.ToBase64String(hasher.ComputeHash(Encoding.ASCII.GetBytes(basekey)));
+                return Convert.ToBase64String(hasher.ComputeHash(Encoding.ASCII.GetBytes(baseKey)));
             }
         }
 
@@ -160,24 +152,20 @@ namespace Dinosaur.Bots
         /// </summary>
         /// <param name="data">The sorted dictionary with the oauth and other data.</param>
         /// <returns>The generated parameter string.</returns>
-        private string GenerateParameterString(SortedDictionary<string, string> data)
+        private static string GenerateParameterString(SortedDictionary<string, string> data)
         {
-            return string.Join("&",
-                data.Select(kvp =>
-                    string.Format("{0}={1}", Uri.EscapeDataString(kvp.Key), Uri.EscapeDataString(kvp.Value))));
+            return string.Join("&", data.Select(kvp => string.Format("{0}={1}", Uri.EscapeDataString(kvp.Key), Uri.EscapeDataString(kvp.Value))));
         }
 
         /// <summary>
         /// Generates the base key by encoding joining the request type, the url and the parameter string. It percent encodes all the values.
         /// </summary>
-        /// <param name="data">The sorted dictionary with the oauth and other data.</param>
+        /// <param name="parameterString"></param>
+        /// <param name="url"></param>
         /// <returns>The generated base key.</returns>
-        private string GenerateBaseKey(string parameterString, string url)
+        private static string GenerateBaseKey(string parameterString, string url)
         {
-            return "POST&" +
-                   Uri.EscapeDataString(url) +
-                   "&" +
-                   Uri.EscapeDataString(parameterString);
+            return "POST&" + Uri.EscapeDataString(url) + "&" + Uri.EscapeDataString(parameterString);
         }
 
         /// <summary>
@@ -185,13 +173,9 @@ namespace Dinosaur.Bots
         /// </summary>
         /// <param name="data">The sorted dictionary with the oauth and other data.</param>
         /// <returns>The generated OAuth</returns>
-        private string GenerateOauth(SortedDictionary<string, string> data)
+        private static string GenerateOauth(SortedDictionary<string, string> data)
         {
-            return "OAuth " + string.Join(", ",
-                       data.Where(kvp => kvp.Key.StartsWith("oauth"))
-                           .Select(kvp => string.Format("{0}=\"{1}\"", Uri.EscapeDataString(kvp.Key),
-                               Uri.EscapeDataString(kvp.Value)))
-                           .OrderBy(kvp => kvp));
+            return "OAuth " + string.Join(", ", data.Where(kvp => kvp.Key.StartsWith("oauth")).Select(kvp => string.Format("{0}=\"{1}\"", Uri.EscapeDataString(kvp.Key), Uri.EscapeDataString(kvp.Value))).OrderBy(kvp => kvp));
         }
     }
 }

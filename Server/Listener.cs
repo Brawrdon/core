@@ -1,19 +1,17 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.IO;
 using System.Net;
 using System.Net.Http;
-using Dinosaur.Bots;
 using Newtonsoft.Json.Linq;
 
-namespace Dinosaur.Server
+namespace BrawrdonBot.Server
 {
-    internal class Listener
+    internal static class Listener
     {
         private static HttpListener _listener;
         private static HttpClient _client;
 
-        private static TwitterBot _brawrdonBot;
+        private static BrawrdonBot _brawrdonBot;
 
         private static void Main(string[] args)
         {
@@ -37,7 +35,7 @@ namespace Dinosaur.Server
 
         private static void BuildTwitterBots()
         {
-            _brawrdonBot = new TwitterBot(_client, API.Twitter.BrawrdonBot.ConsumerKey, API.Twitter.BrawrdonBot.OauthToken, API.Twitter.BrawrdonBot.ConsumerKeySecret, API.Twitter.BrawrdonBot.OauthTokenSecret);
+            _brawrdonBot = new BrawrdonBot(_client, Api.ConsumerKey, Api.OauthToken, Api.ConsumerKeySecret, Api.OauthTokenSecret);
         }
 
         private static void DestroyTwitterBots()
@@ -48,14 +46,11 @@ namespace Dinosaur.Server
 
         private static void ListenerCallback(IAsyncResult ar)
         {
-
             var context = _listener.EndGetContext(ar);
             var request = context.Request;
             var requestUrl = request.RawUrl.ToLower();
             var response = context.Response;
-            JObject responseMessage = new JObject(
-                           new JProperty("status", 400),
-                           new JProperty("reason", "Invalid request"));
+            JObject responseMessage = new JObject(new JProperty("status", 400), new JProperty("reason", "Invalid request"));
 
             // Appends a backslash to the end of the request URL to make sure checks are done properly
             if (!requestUrl.EndsWith("/"))
@@ -83,16 +78,14 @@ namespace Dinosaur.Server
                 responseMessage["reason"] = "Method not allowed";
             }
 
-            response.StatusCode = (int)responseMessage["status"];
-            response.StatusDescription = (string)responseMessage["reason"];
+            response.StatusCode = (int) responseMessage["status"];
+            response.StatusDescription = (string) responseMessage["reason"];
             response.Close();
         }
 
         private static JObject ProcessTwitterRequest(HttpListenerRequest request, string requestUrl)
         {
-            JObject responseMessage = new JObject(
-                 new JProperty("status", 400),
-                 new JProperty("reason", "Invalid request"));
+            JObject responseMessage = new JObject(new JProperty("status", 400), new JProperty("reason", "Invalid request"));
 
             // Removes /twitter from the url request to easily check what kind of request this is
             requestUrl = requestUrl.Remove(0, 9);
@@ -105,8 +98,6 @@ namespace Dinosaur.Server
                 {
                     using (var reader = new StreamReader(request.InputStream))
                     {
-
-
                         var requestBody = JObject.Parse(reader.ReadToEnd());
 
                         if (requestBody["message"] != null)
@@ -120,6 +111,7 @@ namespace Dinosaur.Server
                     }
                 }
             }
+
             return responseMessage;
         }
     }
