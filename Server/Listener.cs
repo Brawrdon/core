@@ -15,34 +15,41 @@ namespace BrawrdonBot.Server
 
         private static void Main(string[] args)
         {
-            // TODO: Add exceptions because this broke when I tried to ping
             _client = new HttpClient();
+            _brawrdonBot = new BrawrdonBot(_client, Api.ConsumerKey, Api.OauthToken, Api.ConsumerKeySecret, Api.OauthTokenSecret);
+
+            if (args.Length > 0 && args[0].ToLower().Equals("stop"))
+            {
+                Stop();
+            }
+            else
+            {
+                Start();
+            }
+            
+        }
+
+        private static void Start()
+        {
             _listener = new HttpListener();
             _listener.Prefixes.Add("http://localhost:15101/");
 
             // Build bots
-            _brawrdonBot = new BrawrdonBot(_client, Api.ConsumerKey, Api.OauthToken, Api.ConsumerKeySecret, Api.OauthTokenSecret);
+            _brawrdonBot.SetOnlineStatus(true);
             
             // Start listener
             _listener.Start();
-            _listener.BeginGetContext(ListenerCallback, null);      
-            Console.WriteLine("Listening... Press enter to stop");
-            Console.ReadLine();
+            _listener.BeginGetContext(ListenerCallback, null);
+
+            Console.ReadKey();
             
-            // Destroy bots
+        }
+
+        private static void Stop()
+        {
             _brawrdonBot.SetOnlineStatus(false);
-            Console.WriteLine("Press any key to quit.");
-            Console.ReadLine();
 
-        }
-
-        private static void Build()
-        {
-           
-        }
-
-        private static void Destroy()
-        {
+            // TODO: Add logging
         }
 
 
