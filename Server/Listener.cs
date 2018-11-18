@@ -2,6 +2,7 @@
 using System.IO;
 using System.Net;
 using System.Net.Http;
+using System.Threading;
 using Newtonsoft.Json.Linq;
 
 namespace BrawrdonBot.Server
@@ -32,6 +33,7 @@ namespace BrawrdonBot.Server
         private static void Start()
         {
             _listener = new HttpListener();
+            // TODO: Get HTTPS working
             _listener.Prefixes.Add("http://localhost:15101/");
 
             // Build bots
@@ -41,14 +43,14 @@ namespace BrawrdonBot.Server
             _listener.Start();
             _listener.BeginGetContext(ListenerCallback, null);
 
-            Console.ReadKey();
+            Thread.Sleep(Timeout.Infinite);
             
         }
 
         private static void Stop()
         {
             _brawrdonBot.SetOnlineStatus(false);
-
+            Thread.Sleep(500);
             // TODO: Add logging
         }
 

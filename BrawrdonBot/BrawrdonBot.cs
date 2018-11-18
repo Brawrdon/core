@@ -28,7 +28,6 @@ namespace BrawrdonBot
             _oauthToken = oauthToken;
             _consumerKeySecret = consumerKeySecret;
             _oauthTokenSecret = oauthTokenSecret;
-            SetOnlineStatus(true);
         }
 
 
@@ -62,17 +61,17 @@ namespace BrawrdonBot
             const string url = "https://api.twitter.com/1.1/account/update_profile.json";
 
             var concat = status ? "Currently online." : "Currently offline.";
-            var description = "A .NET Core powered robot that tweets messages sent from http://Brawrdon.com. Part of the Dinosaur server. Made by @Brawrdon. " + concat;
+            var description = "A .NET Core powered robot that tweets messages sent from https://Brawrdon.com. Part of the Dinosaur server. Made by @Brawrdon. " + concat;
 
             var requestData = new SortedDictionary<string, string> {{"description", description}};
 
             Authenticate(url, requestData);
             var content = new FormUrlEncodedContent(requestData);
-
-            Thread.Sleep(500);
             var response = await _client.PostAsync(url, content);
             
-            Console.WriteLine(string.Format("Attempt to change status to '{0}' : {1}", concat, response.ReasonPhrase));
+            // TODO: Add logging
+//            Console.WriteLine("Attempt to change status to '{0}' : {1}", concat, response.ReasonPhrase);
+
         }
 
         /// <summary>
