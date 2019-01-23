@@ -4,7 +4,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
 
-namespace Server.Controllers
+namespace BrawrdonCore.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
