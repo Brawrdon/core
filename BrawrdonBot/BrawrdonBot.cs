@@ -11,7 +11,13 @@ using Newtonsoft.Json.Linq;
 
 namespace BrawrdonBot
 {
-    public class BrawrdonBot
+
+    public interface ITwitterBot
+    {
+        Task<JObject> PostTweet(string status);
+        void SetOnlineStatus(bool status);
+    }
+    public class BrawrdonBot : ITwitterBot
     {
         private readonly HttpClient _client;
         private const string Alphabet = "abcdefghijklmnopqrstuvwxyz0123456789";
@@ -19,6 +25,7 @@ namespace BrawrdonBot
         private readonly string _oauthToken;
         private readonly string _consumerKeySecret;
         private readonly string _oauthTokenSecret;
+
 
 
         public BrawrdonBot(HttpClient client, string consumerKey, string oauthToken, string consumerKeySecret, string oauthTokenSecret)
@@ -39,7 +46,7 @@ namespace BrawrdonBot
         public async Task<JObject> PostTweet(string status)
         {
             const string url = "https://api.twitter.com/1.1/statuses/update.json";
-            var requestData = new SortedDictionary<string, string> {{"status", status}};
+            var requestData = new SortedDictionary<string, string> { { "status", status } };
 
             Authenticate(url, requestData);
             var content = new FormUrlEncodedContent(requestData);
@@ -63,14 +70,14 @@ namespace BrawrdonBot
             var concat = status ? "Currently online." : "Currently offline.";
             var description = "A .NET Core powered robot that tweets messages sent from https://Brawrdon.com. Part of the Dinosaur server. Made by @Brawrdon. " + concat;
 
-            var requestData = new SortedDictionary<string, string> {{"description", description}};
+            var requestData = new SortedDictionary<string, string> { { "description", description } };
 
             Authenticate(url, requestData);
             var content = new FormUrlEncodedContent(requestData);
             var response = await _client.PostAsync(url, content);
-            
+
             // TODO: Add logging
-//            Console.WriteLine("Attempt to change status to '{0}' : {1}", concat, response.ReasonPhrase);
+            //            Console.WriteLine("Attempt to change status to '{0}' : {1}", concat, response.ReasonPhrase);
 
         }
 

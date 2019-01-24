@@ -10,6 +10,8 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
+using BrawrdonBot;
+using System.Net.Http;
 
 namespace BrawrdonCore
 {
@@ -25,7 +27,12 @@ namespace BrawrdonCore
         // This method gets called by the runtime. Use this method to add services to the container.
         public void ConfigureServices(IServiceCollection services)
         {
+            HttpClient httpClient = new HttpClient();
+
             services.AddMvc().SetCompatibilityVersion(CompatibilityVersion.Version_2_2);
+            services.AddSingleton<HttpClient>(httpClient);
+
+            services.AddSingleton<ITwitterBot>(new BrawrdonBot.BrawrdonBot(httpClient, "", "", "", ""));
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
