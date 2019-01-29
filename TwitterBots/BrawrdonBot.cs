@@ -27,10 +27,10 @@ namespace TwitterBots
         public BrawrdonBot(HttpClient client)
         {
             _client = client;
-            _consumerKey = "";
-            _oauthToken = "";
-            _consumerKeySecret = "";
-            _oauthTokenSecret = "";
+            _consumerKey = Environment.GetEnvironmentVariable("BRAWRDONBOT_CONSUMER_KEY");
+            _oauthToken = Environment.GetEnvironmentVariable("BRAWRDONBOT_OAUTH_TOKEN");
+            _consumerKeySecret = Environment.GetEnvironmentVariable("BRAWRDONBOT_CONSUMER_KEY_SECRET");
+            _oauthTokenSecret = Environment.GetEnvironmentVariable("BRAWRDONBOT_OAUTH_TOKEN_SECRET");
         }
 
 
