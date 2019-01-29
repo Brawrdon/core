@@ -3,30 +3,25 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
-using BrawrdonBot;
 using Microsoft.Extensions.DependencyInjection;
+using TwitterBots;
 
 namespace BrawrdonCore.Controllers
 {
-    [Route("[controller]")]
+    [Route("twitter/brawrdonbot")]
     [ApiController]
     public class TwitterController : ControllerBase
     {
+        private readonly BrawrdonBot _brawrdonBot;
 
-        private readonly ITwitterBot twitterBot;
-
-
-        //ToDo: Look at collections for more than one Twitter bot
-        public TwitterController(ITwitterBot twitterBot)
+        public TwitterController(BrawrdonBot brawrdonBot)
         {
-            this.twitterBot = twitterBot;
-
+            _brawrdonBot = brawrdonBot;
         }
 
-        [HttpPost("brawrdonbot")]
-        public async Task<ActionResult> PostBrawrdonBot([FromBody] Tweet tweet)
+        public async Task<ActionResult> PostTweet([FromBody] Tweet tweet)
         {
-            var response = await twitterBot.PostTweet(tweet.Message);
+            var response = await _brawrdonBot.PostTweet(tweet.Message);
             if (response.Value<int>("status") == 200)
             {
                 return Ok(tweet.Message);

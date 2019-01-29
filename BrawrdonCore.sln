@@ -1,6 +1,6 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "BrawrdonBot", "BrawrdonBot\BrawrdonBot.csproj", "{FB27C3FE-904B-44EA-B968-522A4016A478}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "TwitterBots", "TwitterBots\TwitterBots.csproj", "{FB27C3FE-904B-44EA-B968-522A4016A478}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "BrawrdonCore", "BrawrdonCore\BrawrdonCore.csproj", "{4B7D3808-372F-4EFA-BCFA-576438CDA3DC}"
 EndProject

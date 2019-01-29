@@ -10,7 +10,7 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
-using BrawrdonBot;
+using TwitterBots;
 using System.Net.Http;
 
 namespace BrawrdonCore
@@ -32,7 +32,7 @@ namespace BrawrdonCore
             services.AddMvc().SetCompatibilityVersion(CompatibilityVersion.Version_2_2);
             services.AddSingleton<HttpClient>(httpClient);
 
-            services.AddSingleton<ITwitterBot>(new BrawrdonBot.BrawrdonBot(httpClient, "", "", "", ""));
+            services.AddScoped<ITwitterBot>(x => new BrawrdonBot(httpClient, "", "", "", ""));
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.

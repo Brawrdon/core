@@ -1,4 +1,4 @@
-﻿namespace BrawrdonBot
+﻿namespace TwitterBots
 {
     public static class Api
     {

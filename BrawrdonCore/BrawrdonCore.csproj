@@ -11,7 +11,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\BrawrdonBot\BrawrdonBot.csproj" />
+    <ProjectReference Include="..\TwitterBots\TwitterBots.csproj" />
   </ItemGroup>
 
 </Project>
