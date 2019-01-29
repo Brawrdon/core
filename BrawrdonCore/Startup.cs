@@ -27,12 +27,12 @@ namespace BrawrdonCore
         // This method gets called by the runtime. Use this method to add services to the container.
         public void ConfigureServices(IServiceCollection services)
         {
-            HttpClient httpClient = new HttpClient();
+        
+            var httpClient = new HttpClient();
 
             services.AddMvc().SetCompatibilityVersion(CompatibilityVersion.Version_2_2);
-            services.AddSingleton<HttpClient>(httpClient);
-
-            services.AddScoped<ITwitterBot>(x => new BrawrdonBot(httpClient, "", "", "", ""));
+            services.AddSingleton<HttpClient>();
+            services.AddScoped(serviceProvider => new BrawrdonBot(httpClient));
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.

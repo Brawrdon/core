@@ -24,13 +24,13 @@ namespace TwitterBots
 
 
 
-        public BrawrdonBot(HttpClient client, string consumerKey, string oauthToken, string consumerKeySecret, string oauthTokenSecret)
+        public BrawrdonBot(HttpClient client)
         {
             _client = client;
-            _consumerKey = consumerKey;
-            _oauthToken = oauthToken;
-            _consumerKeySecret = consumerKeySecret;
-            _oauthTokenSecret = oauthTokenSecret;
+            _consumerKey = "";
+            _oauthToken = "";
+            _consumerKeySecret = "";
+            _oauthTokenSecret = "";
         }
 
 
