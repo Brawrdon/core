@@ -60,12 +60,12 @@ namespace TwitterBots
         private async Task<string> UploadImage(string status)
         {
             const string url = "https://upload.twitter.com/1.1/media/upload.json";
-            
+            var filePath = Path.Combine(Environment.GetEnvironmentVariable("HOME"), "image.png");
             var generator = new CommandGenerator();
             generator.Generate(status);
-            generator.Draw("image.png");
+            generator.Draw(filePath);
 
-            var base64Image = Convert.ToBase64String(File.ReadAllBytes("image.png"));
+            var base64Image = Convert.ToBase64String(File.ReadAllBytes(filePath));
             var requestData = new SortedDictionary<string, string> { { "media_data", base64Image } };
 
             Authenticate(url, requestData);
@@ -76,7 +76,7 @@ namespace TwitterBots
             var responseData = await response.Content.ReadAsStringAsync();
             var responseDataJson = (JObject)JsonConvert.DeserializeObject(responseData);
 
-            File.Delete("image.png");
+            File.Delete(filePath);
             return responseDataJson.Value<string>("media_id_string");
 
         }
@@ -91,7 +91,7 @@ namespace TwitterBots
             const string url = "https://api.twitter.com/1.1/account/update_profile.json";
 
             var concat = status ? "Currently online." : "Currently offline.";
-            var description = "A .NET Core powered robot that tweets messages sent from https://Brawrdon.com. Part of the Dinosaur server. Made by @Brawrdon. " + concat;
+            var description = "A .NET Core powered robot that tweets messages sent from https://Brawrdon.com. Made by @Brawrdon. " + concat;
 
             var requestData = new SortedDictionary<string, string> { { "description", description } };
 
@@ -100,7 +100,7 @@ namespace TwitterBots
             var response = await _client.PostAsync(url, content);
 
             // TODO: Add logging
-            //            Console.WriteLine("Attempt to change status to '{0}' : {1}", concat, response.ReasonPhrase);
+            // Console.WriteLine("Attempt to change status to '{0}' : {1}", concat, response.ReasonPhrase);
 
         }
 
