@@ -1,13 +1,15 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Net.Http;
 using System.Security.Cryptography;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
+using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
-
+using Pyxcell;
 
 namespace TwitterBots
 {
@@ -41,9 +43,10 @@ namespace TwitterBots
         /// <returns>T response code and message.</returns>
         public async Task<JObject> PostTweet(string status)
         {
+            var media = await UploadImage(status);
             const string url = "https://api.twitter.com/1.1/statuses/update.json";
-            var requestData = new SortedDictionary<string, string> { { "status", status } };
-
+            var requestData = new SortedDictionary<string, string> { { "status", status }, {"media_ids", media} };
+    
             Authenticate(url, requestData);
             var content = new FormUrlEncodedContent(requestData);
 
@@ -52,6 +55,30 @@ namespace TwitterBots
             var response = await _client.PostAsync(url, content);
 
             return new JObject(new JProperty("status", response.StatusCode), new JProperty("reason", response.ReasonPhrase));
+        }
+
+        private async Task<string> UploadImage(string status)
+        {
+            const string url = "https://upload.twitter.com/1.1/media/upload.json";
+            
+            var generator = new CommandGenerator();
+            generator.Generate(status);
+            generator.Draw("image.png");
+
+            var base64Image = Convert.ToBase64String(File.ReadAllBytes("image.png"));
+            var requestData = new SortedDictionary<string, string> { { "media_data", base64Image } };
+
+            Authenticate(url, requestData);
+
+            var content = new FormUrlEncodedContent(requestData);
+            
+            var response = await _client.PostAsync(url, content);
+            var responseData = await response.Content.ReadAsStringAsync();
+            var responseDataJson = (JObject)JsonConvert.DeserializeObject(responseData);
+
+            File.Delete("image.png");
+            return responseDataJson.Value<string>("media_id_string");
+
         }
 
         /// <summary>
@@ -114,7 +141,6 @@ namespace TwitterBots
             _client.DefaultRequestHeaders.Add("Authorization", GenerateOauth(data));
         }
 
-
         /// <summary>
         /// Twitter requires that each request has a randomly generated nonce. This just takes 32 random values from alphabet and uses that as the nonce.
         /// </summary>
@@ -144,7 +170,9 @@ namespace TwitterBots
         private static string GenerateSignature(SortedDictionary<string, string> data, string url, string consumerKeySecret, string oauthTokenSecret)
         {
             var parameterString = GenerateParameterString(data);
+
             var baseKey = GenerateBaseKey(parameterString, url);
+
             var signingKey = Uri.EscapeDataString(consumerKeySecret) + "&" + Uri.EscapeDataString(oauthTokenSecret);
 
 
@@ -175,7 +203,7 @@ namespace TwitterBots
         {
             return "POST&" + Uri.EscapeDataString(url) + "&" + Uri.EscapeDataString(parameterString);
         }
-
+       
         /// <summary>
         /// Takes all the data starting with oauth and creates an OAuth Authorization header.
         /// </summary>
