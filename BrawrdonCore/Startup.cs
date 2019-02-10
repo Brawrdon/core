@@ -33,6 +33,7 @@ namespace BrawrdonCore
             services.AddMvc().SetCompatibilityVersion(CompatibilityVersion.Version_2_2);
             services.AddSingleton<HttpClient>();
             services.AddScoped(serviceProvider => new BrawrdonBot(httpClient));
+            services.AddCors();
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
@@ -48,6 +49,8 @@ namespace BrawrdonCore
                 app.UseHsts();
             }
 
+            app.UseCors(builder =>
+                builder.WithOrigins("*"));
             // app.UseHttpsRedirection();
             app.UseMvc();
         }
