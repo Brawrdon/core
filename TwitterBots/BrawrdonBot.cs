@@ -5,7 +5,6 @@ using System.Linq;
 using System.Net.Http;
 using System.Security.Cryptography;
 using System.Text;
-using System.Threading;
 using System.Threading.Tasks;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
@@ -50,11 +49,11 @@ namespace TwitterBots
             Authenticate(url, requestData);
             var content = new FormUrlEncodedContent(requestData);
 
-            // Request is sent! Woo! (I added a small delay so that Twitter doesn't think two people are spamming)
-            Thread.Sleep(500);
             var response = await _client.PostAsync(url, content);
 
-            return new JObject(new JProperty("status", response.StatusCode), new JProperty("reason", response.ReasonPhrase));
+            var tweet = JObject.Parse(await response.Content.ReadAsStringAsync());
+
+            return JObject.FromObject(new {status = response.StatusCode, tweetId = tweet.Value<string>("id_str")});
         }
 
         private async Task<string> UploadImage(string status)

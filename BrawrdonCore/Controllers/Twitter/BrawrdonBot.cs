@@ -1,8 +1,9 @@
 ﻿using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
+using Newtonsoft.Json.Linq;
 using TwitterBots;
 
-namespace BrawrdonCore.Controllers
+namespace BrawrdonCore.Controllers.Twitter
 {
     [Route("/twitter/brawrdonbot")]
     [ApiController]
@@ -17,16 +18,13 @@ namespace BrawrdonCore.Controllers
 
         
         [HttpPost]
-        public async Task<ActionResult> PostTweet([FromBody] Tweet tweet)
+        public async Task<ActionResult> PostTweet([FromBody] Tweet tweetRequest)
         {
-            var response = await _brawrdonBot.PostTweet(tweet.Message);
-            if (response.Value<int>("status") == 200)
-                return Ok(tweet.Message);
+            HttpContext.Response.ContentType = "application/json";
 
+            var tweetResponse = await _brawrdonBot.PostTweet(tweetRequest.Message);
 
-            var result = new ObjectResult("There was an issue with starting BrawrdonBot.") {StatusCode = 500};
-
-            return result;
+            return tweetResponse.Value<int>("status") == 200 ? Ok(JObject.FromObject(new {tweetId = tweetResponse.Value<string>("tweetId")})) : new ObjectResult(JObject.FromObject(new { error = "There was an issue with starting BrawrdonBot." })) { StatusCode = 500 };
         }
     }
 }
