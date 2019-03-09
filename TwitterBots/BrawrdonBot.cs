@@ -19,7 +19,6 @@ namespace TwitterBots
 
         public BrawrdonBot(HttpClient client) : base(client, Environment.GetEnvironmentVariable("BRAWRDONBOT_CONSUMER_KEY"), Environment.GetEnvironmentVariable("BRAWRDONBOT_OAUTH_TOKEN"),  Environment.GetEnvironmentVariable("BRAWRDONBOT_CONSUMER_KEY_SECRET"), Environment.GetEnvironmentVariable("BRAWRDONBOT_OAUTH_TOKEN_SECRET"))
         {
-           Console.WriteLine("hello");
         }
 
         public async Task<JObject> PostTweet(string status)
