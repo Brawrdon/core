@@ -3,15 +3,15 @@ using Microsoft.AspNetCore.Mvc;
 using Newtonsoft.Json.Linq;
 using TwitterBots;
 
-namespace BrawrdonCore.Controllers.Twitter
+namespace BrawrdonCore.Controllers
 {
     [Route("/twitter/brawrdonbot")]
     [ApiController]
-    public class TwitterController : ControllerBase
+    public class BrawrdonBotController : ControllerBase
     {
-        private readonly ITwitterBot _brawrdonBot;
+        private readonly BrawrdonBot _brawrdonBot;
 
-        public TwitterController(BrawrdonBot brawrdonBot)
+        public BrawrdonBotController(BrawrdonBot brawrdonBot)
         {
             _brawrdonBot = brawrdonBot;
         }
