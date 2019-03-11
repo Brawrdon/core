@@ -1,4 +1,6 @@
-﻿using Microsoft.AspNetCore.Builder;
+﻿using System.Collections.Concurrent;
+using System.Collections.Generic;
+using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Configuration;
@@ -28,7 +30,9 @@ namespace BrawrdonCore
             });
 
             services.AddTransient(serviceProvider => new BrawrdonBot(new HttpClient()));
-           
+            services.AddTransient(serviceProvider => new FanBot(new HttpClient()));
+            services.AddSingleton<OAuthService>();
+
             services.AddMvc().SetCompatibilityVersion(CompatibilityVersion.Version_2_2);
         }
 

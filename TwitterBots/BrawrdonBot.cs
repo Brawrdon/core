@@ -21,10 +21,11 @@ namespace TwitterBots
         {
         }
 
-        public async Task<JObject> PostTweet(string status)
+        public override async Task<JObject> PostTweet(string status, string replyToScreenName = null, string replyToStatusId = null, string mediaBase64 = null)
         {
-            var mediaBase64 = await UploadImage(status);
-            return await PostTweet(status, mediaBase64: mediaBase64);
+            var generateMediaBase64 = await UploadImage(status);
+           
+            return await base.PostTweet(status, mediaBase64: generateMediaBase64);
         }
         
 

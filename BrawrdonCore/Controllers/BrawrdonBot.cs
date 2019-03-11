@@ -6,8 +6,7 @@ using TwitterBots;
 namespace BrawrdonCore.Controllers
 {
     [Route("/twitter/brawrdonbot")]
-    [ApiController]
-    public class BrawrdonBotController : ControllerBase
+    public class BrawrdonBotController : Controller
     {
         private readonly BrawrdonBot _brawrdonBot;
 

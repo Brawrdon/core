@@ -16,22 +16,24 @@ namespace TwitterBots
 
         private const string Alphabet = "abcdefghijklmnopqrstuvwxyz0123456789";
         private readonly string _consumerKey;
-        private readonly string _oauthToken;
+        public string OauthToken { get; set; }
         private readonly string _consumerKeySecret;
-        private readonly string _oauthTokenSecret;
+        public string OauthTokenSecret { get; set; }
 
 
         protected TwitterBot(HttpClient client, string consumerKey, string oauthToken, string consumerKeySecret, string oauthTokenSecret)
         {
             _client = client;
             _consumerKey = consumerKey;
-            _oauthToken = oauthToken;
+            OauthToken = oauthToken;
             _consumerKeySecret = consumerKeySecret;
-            _oauthTokenSecret = oauthTokenSecret;
+            OauthTokenSecret = oauthTokenSecret;
         }
+        
+        
 
 
-        public async Task<JObject> PostTweet(string status, string replyToScreenName = null, string replyToStatusId = null, string mediaBase64 = null)
+         public virtual async Task<JObject> PostTweet(string status, string replyToScreenName = null, string replyToStatusId = null, string mediaBase64 = null)
         {
             const string url = "https://api.twitter.com/1.1/statuses/update.json";
 
@@ -78,7 +80,7 @@ namespace TwitterBots
                 {"oauth_nonce", oauthNonce},
                 {"oauth_signature_method", "HMAC-SHA1"},
                 {"oauth_timestamp", DateTimeOffset.UtcNow.ToUnixTimeSeconds().ToString()},
-                {"oauth_token", _oauthToken},
+                {"oauth_token", OauthToken},
                 {"oauth_version", "1.0"}
             };
 
@@ -87,7 +89,7 @@ namespace TwitterBots
                 data.Add(item.Key, item.Value);
             }
 
-            data.Add("oauth_signature", GenerateSignature(data, url, _consumerKeySecret, _oauthTokenSecret));
+            data.Add("oauth_signature", GenerateSignature(data, url, _consumerKeySecret, OauthTokenSecret));
             _client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("OAuth", GenerateOauth(data));
         }
 
@@ -141,8 +143,7 @@ namespace TwitterBots
         /// <returns>The generated parameter string.</returns>
         private static string GenerateParameterString(SortedDictionary<string, string> data)
         {
-            return string.Join("&",
-                data.Select(kvp => string.Format("{0}={1}", Uri.EscapeDataString(kvp.Key), Uri.EscapeDataString(kvp.Value))));
+            return string.Join("&", data.Select(kvp => string.Format("{0}={1}", Uri.EscapeDataString(kvp.Key), Uri.EscapeDataString(kvp.Value))));
         }
 
         /// <summary>

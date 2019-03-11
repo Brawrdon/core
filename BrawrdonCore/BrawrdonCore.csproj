@@ -10,4 +10,7 @@
   <ItemGroup>
     <ProjectReference Include="..\TwitterBots\TwitterBots.csproj" />
   </ItemGroup>
+  <ItemGroup>
+    <Content Remove="Views\FanBot.cshtml" />
+  </ItemGroup>
 </Project>
