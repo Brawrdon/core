@@ -1,4 +1,7 @@
 using System.Collections.Concurrent;
+using System.IO;
+using Microsoft.AspNetCore.Hosting;
+using Newtonsoft.Json;
 
 namespace TwitterBots
 {
@@ -7,12 +10,19 @@ namespace TwitterBots
         public readonly ConcurrentDictionary<string, string> Secrets;
         public readonly ConcurrentDictionary<string, OAuth> Authorisations;
 
-        public OAuthService()
+        public OAuthService(IApplicationLifetime lifetime)
         {
+            lifetime.ApplicationStopping.Register(SaveToDisk);
+
+            var authorisations = File.ReadAllText("authorisations.txt");
             Secrets = new ConcurrentDictionary<string, string>();
-            Authorisations = new ConcurrentDictionary<string, OAuth>();
+            Authorisations = JsonConvert.DeserializeObject<ConcurrentDictionary<string, OAuth>>(authorisations);
         }
 
+        private void SaveToDisk()
+        {
+            File.WriteAllText("authorisations.txt", JsonConvert.SerializeObject(Authorisations));           
+        }
     }
 
 

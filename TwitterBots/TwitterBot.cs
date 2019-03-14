@@ -30,9 +30,6 @@ namespace TwitterBots
             OauthTokenSecret = oauthTokenSecret;
         }
         
-        
-
-
          public virtual async Task<JObject> PostTweet(string status, string replyToScreenName = null, string replyToStatusId = null, string mediaBase64 = null)
         {
             const string url = "https://api.twitter.com/1.1/statuses/update.json";

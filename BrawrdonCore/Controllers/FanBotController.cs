@@ -5,6 +5,7 @@ using System.Linq;
 using System.Net.Http;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
+using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using TwitterBots;
 
@@ -60,9 +61,30 @@ namespace BrawrdonCore.Controllers
             registeredFanBot.OauthToken = result["oauth_token"];
             registeredFanBot.OauthTokenSecret = result["oauth_token_secret"];
 
-            return Ok("You've been added to the dictionary");
+            return Ok("User had been added!");
 
         }
+        
+        [HttpGet("[controller]/users")]        
+        public async Task<IActionResult> GetUsers()
+        {
+            // ToDo: Change to Authentication Required
+            if (!HttpContext.Request.Headers.TryGetValue("Authorization", out var authorizationHeaderStringValues))
+                return Unauthorized();
+
+            var authorizationHeader = authorizationHeaderStringValues.ToString();
+            
+            if (authorizationHeader == null || !authorizationHeader.StartsWith("Basic")) 
+                return Unauthorized();
+            
+            var token = authorizationHeader.Substring("Basic ".Length).Trim();
+
+            if (token != Environment.GetEnvironmentVariable("FANBOT_ACCESS_TOKEN"))
+                return Unauthorized();
+            
+            return Ok(JsonConvert.SerializeObject(_oAuthService.Authorisations));
+        }
+       
         
         
     }

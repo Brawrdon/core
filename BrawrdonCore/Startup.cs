@@ -1,9 +1,7 @@
-﻿using System.Collections.Concurrent;
-using System.Collections.Generic;
+﻿using System;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 
 using TwitterBots;
@@ -16,10 +14,10 @@ namespace BrawrdonCore
     {
         readonly string MyAllowSpecificOrigins = "_myAllowSpecificOrigins";
        
-
         // This method gets called by the runtime. Use this method to add services to the container.
         public void ConfigureServices(IServiceCollection services)
         {
+            
             services.AddCors(options =>
             {
                 options.AddPolicy(MyAllowSpecificOrigins,
@@ -32,12 +30,13 @@ namespace BrawrdonCore
             services.AddTransient(serviceProvider => new BrawrdonBot(new HttpClient()));
             services.AddTransient(serviceProvider => new FanBot(new HttpClient()));
             services.AddSingleton<OAuthService>();
-
+            
+           
             services.AddMvc().SetCompatibilityVersion(CompatibilityVersion.Version_2_2);
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
-        public void Configure(IApplicationBuilder app, IHostingEnvironment env)
+        public void Configure(IApplicationBuilder app, IHostingEnvironment env, IServiceProvider serviceProvider)
         {
             if (env.IsDevelopment())
             {
