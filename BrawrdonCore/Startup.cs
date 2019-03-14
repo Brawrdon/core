@@ -8,6 +8,8 @@ using Microsoft.Extensions.DependencyInjection;
 
 using TwitterBots;
 using System.Net.Http;
+using BrawrdonCore.Middlewares;
+using BrawrdonCore.Services;
 using Microsoft.AspNetCore.HttpOverrides;
 
 namespace BrawrdonCore
@@ -32,6 +34,7 @@ namespace BrawrdonCore
             services.AddTransient(serviceProvider => new BrawrdonBot(new HttpClient()));
             services.AddTransient(serviceProvider => new FanBot(new HttpClient()));
             services.AddSingleton<OAuthService>();
+            services.AddSingleton<WebSocketService>();
 
             services.AddMvc().SetCompatibilityVersion(CompatibilityVersion.Version_2_2);
         }
@@ -56,9 +59,8 @@ namespace BrawrdonCore
             });
             
             //app.UseHttpsRedirection();
-            
+            app.Map("/websocket", WebSocketMiddleware.MapWebSocket);  
             app.UseMvc();
-            app.UseWebSockets();
         }
     }
 }
