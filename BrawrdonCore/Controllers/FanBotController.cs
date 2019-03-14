@@ -33,7 +33,7 @@ namespace BrawrdonCore.Controllers
             if (!result.ContainsKey("oauth_callback_confirmed"))
                 return BadRequest();
 
-            if (!_oAuthService._requests.TryAdd(result["oauth_token"], result["oauth_token_secret"])) 
+            if (!_oAuthService.Secrets.TryAdd(result["oauth_token"], result["oauth_token_secret"])) 
                 return BadRequest();
 
             if (!bool.TryParse(result["oauth_callback_confirmed"], out var callbackConfirmed))
@@ -49,18 +49,18 @@ namespace BrawrdonCore.Controllers
         [HttpGet("[controller]/callback")]        
         public async Task<IActionResult> Callback([FromQuery(Name = "oauth_token")] string oauth_token, [FromQuery(Name = "oauth_verifier")] string oauth_verifier)
         {
-            _fanBot.OauthToken = oauth_token;
-            _fanBot.OauthTokenSecret = _oAuthService._requests[oauth_token];
-            var result = await _fanBot.AccessToken(oauth_verifier);
+            //ToDo: Look at HttpClient Factories
+            var registeredFanBot = new FanBot(new HttpClient(), oauth_token, _oAuthService.Secrets[oauth_token]);
+            
+            var result = await registeredFanBot.AccessToken(oauth_verifier);
 
-            if (!_oAuthService._authorisation.TryAdd(result["user_id"], new OAuth(result["oauth_token"], result["oauth_token_secret"])))
+            if (!_oAuthService.Authorisations.TryAdd(result["user_id"], new OAuth(result["oauth_token"], result["oauth_token_secret"])))
                 return BadRequest();
 
-            _fanBot.OauthToken = result["oauth_token"];
-            _fanBot.OauthTokenSecret = result["oauth_token_secret"];
-            _fanBot.PostTweet("This tweet came from me using a 3-legged OAuth request.");
+            registeredFanBot.OauthToken = result["oauth_token"];
+            registeredFanBot.OauthTokenSecret = result["oauth_token_secret"];
 
-            return Ok("It worked!");
+            return Ok("You've been added to the dictionary");
 
         }
         

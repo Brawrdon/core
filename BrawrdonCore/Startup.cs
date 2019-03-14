@@ -56,7 +56,9 @@ namespace BrawrdonCore
             });
             
             //app.UseHttpsRedirection();
+            
             app.UseMvc();
+            app.UseWebSockets();
         }
     }
 }

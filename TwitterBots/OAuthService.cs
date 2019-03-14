@@ -4,13 +4,13 @@ namespace TwitterBots
 {
     public class OAuthService
     {
-        public readonly ConcurrentDictionary<string, string> _requests;
-        public readonly ConcurrentDictionary<string, OAuth> _authorisation;
+        public readonly ConcurrentDictionary<string, string> Secrets;
+        public readonly ConcurrentDictionary<string, OAuth> Authorisations;
 
         public OAuthService()
         {
-            _requests = new ConcurrentDictionary<string, string>();
-            _authorisation = new ConcurrentDictionary<string, OAuth>();
+            Secrets = new ConcurrentDictionary<string, string>();
+            Authorisations = new ConcurrentDictionary<string, OAuth>();
         }
 
     }
