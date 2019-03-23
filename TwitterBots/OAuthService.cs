@@ -9,19 +9,31 @@ namespace TwitterBots
     {
         public readonly ConcurrentDictionary<string, string> Secrets;
         public readonly ConcurrentDictionary<string, OAuth> Authorisations;
+        private const string _authorisationsFileName = "authorisations.txt";
 
         public OAuthService(IApplicationLifetime lifetime)
         {
+            
             lifetime.ApplicationStopping.Register(SaveToDisk);
 
-            var authorisations = File.ReadAllText("authorisations.txt");
             Secrets = new ConcurrentDictionary<string, string>();
-            Authorisations = JsonConvert.DeserializeObject<ConcurrentDictionary<string, OAuth>>(authorisations);
+
+            if (File.Exists(_authorisationsFileName))
+            {
+                var authorisations = File.ReadAllText(_authorisationsFileName);
+                Authorisations = JsonConvert.DeserializeObject<ConcurrentDictionary<string, OAuth>>(authorisations);
+                File.Delete(_authorisationsFileName);
+            }
+            else
+            {
+                Authorisations = new ConcurrentDictionary<string, OAuth>();
+            }
+
         }
 
         private void SaveToDisk()
         {
-            File.WriteAllText("authorisations.txt", JsonConvert.SerializeObject(Authorisations));           
+            File.WriteAllText(_authorisationsFileName, JsonConvert.SerializeObject(Authorisations));           
         }
     }
 
