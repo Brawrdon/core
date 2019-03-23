@@ -1,4 +1,5 @@
 ﻿using System.Threading.Tasks;
+using Microsoft.AspNetCore.Cors;
 using Microsoft.AspNetCore.Mvc;
 using Newtonsoft.Json.Linq;
 using TwitterBots;
@@ -6,6 +7,7 @@ using TwitterBots;
 namespace BrawrdonCore.Controllers
 {
     [Route("/twitter/brawrdonbot")]
+    [EnableCors("BrawrdonBotPolicy")]
     public class BrawrdonBotController : Controller
     {
         private readonly BrawrdonBot _brawrdonBot;
