@@ -32,12 +32,10 @@ namespace TwitterBots
         private async Task<string> UploadImage(string status)
         {
             const string url = "https://upload.twitter.com/1.1/media/upload.json";
-            var filePath = Path.Combine(Environment.GetEnvironmentVariable("HOME"), "image.png");
             var generator = new CommandGenerator();
             generator.Generate(status);
-            generator.Draw(filePath);
 
-            var base64Image = Convert.ToBase64String(File.ReadAllBytes(filePath));
+            var base64Image =  generator.DrawToBase64();
             var requestData = new SortedDictionary<string, string> { { "media_data", base64Image } };
 
             Authenticate(url, requestData);
@@ -48,9 +46,7 @@ namespace TwitterBots
             var responseData = await response.Content.ReadAsStringAsync();
             var responseDataJson = (JObject)JsonConvert.DeserializeObject(responseData);
 
-            File.Delete(filePath);
             return responseDataJson.Value<string>("media_id_string");
-
         }
 
     }
