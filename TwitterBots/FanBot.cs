@@ -28,7 +28,7 @@ namespace TwitterBots
         public async Task<Dictionary<string, string>> RequestToken()
         {
             const string url = "https://api.twitter.com/oauth/request_token";
-            var requestData = new SortedDictionary<string, string> {{"oauth_callback", "http://localhost:5000/fanbot/callback"}};
+            var requestData = new SortedDictionary<string, string> {{"oauth_callback", "https://api.brawrdon.com/fanbot/callback"}};
             Authenticate(url, requestData);
             var content = new FormUrlEncodedContent(requestData);
 

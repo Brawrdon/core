@@ -68,7 +68,7 @@ namespace BrawrdonCore.Controllers
         }
         
         [HttpGet("[controller]/users")]        
-        public async Task<IActionResult> GetUsers()
+        public IActionResult GetUsers()
         {
             // ToDo: Change to Authentication Required
             if (!HttpContext.Request.Headers.TryGetValue("Authorization", out var authorizationHeaderStringValues))
