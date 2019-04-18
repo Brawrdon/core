@@ -16,11 +16,11 @@ namespace TwitterBots
     public class FanBot : TwitterBot
     {
 
-        public FanBot(HttpClient client) : base(client, Environment.GetEnvironmentVariable("BRAWRDONBOT_CONSUMER_KEY"), Environment.GetEnvironmentVariable("BRAWRDONBOT_OAUTH_TOKEN"),  Environment.GetEnvironmentVariable("BRAWRDONBOT_CONSUMER_KEY_SECRET"), Environment.GetEnvironmentVariable("BRAWRDONBOT_OAUTH_TOKEN_SECRET"))
+        public FanBot(HttpClient client) : base(client, Environment.GetEnvironmentVariable("FANBOT_CONSUMER_KEY"), Environment.GetEnvironmentVariable("FANBOT_OAUTH_TOKEN"),  Environment.GetEnvironmentVariable("FANBOT_CONSUMER_KEY_SECRET"), Environment.GetEnvironmentVariable("FANBOT_OAUTH_TOKEN_SECRET"))
         {
         }
         
-        public FanBot(HttpClient client, string oauthToken, string oauthTokenSecret) : base(client, Environment.GetEnvironmentVariable("BRAWRDONBOT_CONSUMER_KEY"), oauthToken, Environment.GetEnvironmentVariable("BRAWRDONBOT_CONSUMER_KEY_SECRET"), oauthTokenSecret)
+        public FanBot(HttpClient client, string oauthToken, string oauthTokenSecret) : base(client, Environment.GetEnvironmentVariable("FANBOT_CONSUMER_KEY"), oauthToken, Environment.GetEnvironmentVariable("FANBOT_CONSUMER_KEY_SECRET"), oauthTokenSecret)
         {
         }
 
